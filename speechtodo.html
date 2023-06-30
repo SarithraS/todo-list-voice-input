@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>To-Do List with Animated Background</title>
+  <style>
+    /* CSS styles omitted for brevity */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    .background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background: linear-gradient(135deg, #92e99e 0%, #6dd7e5 100%);
+      animation: backgroundAnimation 15s ease infinite;
+    }
+
+    @keyframes backgroundAnimation {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .task-card {
+      position: relative;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #f1f1f1;
+      animation: cardAnimation 0.4s ease forwards;
+      transform-origin: top;
+    }
+
+    .task-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .task-card.completed {
+      background-color: #e1e1e1;
+    }
+
+    @keyframes cardAnimation {
+      0% {
+        opacity: 0;
+        transform: scaleY(0);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scaleY(1);
+      }
+    }
+
+    .task-card-content {
+      display: flex;
+      align-items: center;
+    }
+
+    .task-card-content span {
+      flex-grow: 1;
+      padding-left: 10px;
+    }
+
+    .task-card-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .task-card-actions button {
+      margin-left: 5px;
+      padding: 5px 10px;
+      border-radius: 3px;
+      border: none;
+      background-color: #994ee3;
+      color: #9ef1a1;
+      cursor: pointer;
+    }
+
+    .task-card-actions button:hover {
+      background-color: #5c3886;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="background"></div>
+  <div class="container">
+    <h1>To-Do List</h1>
+    <input type="text" id="taskInput" placeholder="New Task">
+    <button onclick="addTask()">Add</button>
+    <button onclick="startSpeechRecognition()">Voice Input</button>
+    <div id="taskList"></div>
+  </div>
+
+  <script>
+    let tasks = [];
+    let recognition;
+
+    function initializeSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+    }
+
+    function addTask() {
+      const taskInput = document.getElementById("taskInput");
+      const taskList = document.getElementById("taskList");
+
+      if (taskInput.value !== "") {
+        const task = {
+          id: Date.now(),
+          content: taskInput.value,
+          completed: false
+        };
+
+        tasks.push(task);
+
+        const taskCard = document.createElement("div");
+        taskCard.classList.add("task-card");
+
+        const taskCardContent = document.createElement("div");
+        taskCardContent.classList.add("task-card-content");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.addEventListener("click", function () {
+          taskCard.classList.toggle("completed");
+          task.completed = !task.completed;
+        });
+
+        const taskContent = document.createElement("span");
+        taskContent.textContent = task.content;
+
+        const editButton = document.createElement("button");
+        editButton.textContent = "Edit";
+        editButton.addEventListener("click", function () {
+          const newContent = prompt("Enter new task content:", task.content);
+          if (newContent !== null) {
+            task.content = newContent;
+            taskContent.textContent = newContent;
+          }
+        });
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.addEventListener("click", function () {
+          const index = tasks.findIndex(t => t.id === task.id);
+          if (index !== -1) {
+            tasks.splice(index, 1);
+            taskCard.remove();
+          }
+        });
+
+        taskCardContent.appendChild(checkbox);
+        taskCardContent.appendChild(taskContent);
+        taskCardContent.appendChild(editButton);
+        taskCardContent.appendChild(deleteButton);
+
+        taskCard.appendChild(taskCardContent);
+        taskList.appendChild(taskCard);
+
+        taskInput.value = "";
+      }
+    }
+
+    function startSpeechRecognition() {
+      recognition.start();
+    }
+
+    function handleSpeechRecognition(event) {
+      const speechResult = event.results[0][0].transcript;
+      const taskInput = document.getElementById("taskInput");
+      taskInput.value = speechResult;
+      addTask(); // Automatically add the recognized task
+    }
+
+    initializeSpeechRecognition();
+    recognition.addEventListener("result", handleSpeechRecognition);
+  </script>
+</body>
+
+</html>
